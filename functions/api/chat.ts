@@ -134,6 +134,7 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
   });
 
   if (!anthropicRes.ok) {
+    console.error("chat upstream_error", anthropicRes.status, await anthropicRes.text());
     return jsonResponse({ error: "upstream_error" }, 502);
   }
 

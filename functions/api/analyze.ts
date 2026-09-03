@@ -138,6 +138,10 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
   });
 
   if (!anthropicRes.ok) {
+    // Logged server-side only (Cloudflare Function logs) — never sent to the
+    // client, and the body never includes the API key, just Anthropic's own
+    // error payload (auth/billing/model-name issues show up here clearly).
+    console.error("analyze upstream_error", anthropicRes.status, await anthropicRes.text());
     return jsonResponse({ error: "upstream_error" }, 502);
   }
 
