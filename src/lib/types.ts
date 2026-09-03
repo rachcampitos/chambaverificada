@@ -10,3 +10,8 @@ export interface AnalysisResult {
   risk: RiskLevel;
   reasons: AnalysisReason[];
 }
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}

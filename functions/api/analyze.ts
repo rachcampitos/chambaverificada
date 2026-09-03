@@ -3,18 +3,16 @@
 // Next.js site in src/. This is the one place ANTHROPIC_API_KEY is used —
 // it must be set as a Cloudflare Pages secret, never in the frontend or repo.
 
-interface Env {
-  ANTHROPIC_API_KEY: string;
-  RATE_LIMIT: KVNamespace;
-  /** Comma-separated list of allowed origins, e.g. "https://chambaverificada.pages.dev,https://chambaverificada.pe" */
-  ALLOWED_ORIGINS?: string;
-}
+import {
+  checkRateLimit,
+  getClientIp,
+  isAllowedOrigin,
+  jsonResponse,
+  type SecurityEnv,
+} from "../_lib/security";
 
-// Minimal shape of the Cloudflare KV binding — avoids pulling in the full
-// @cloudflare/workers-types package for one interface.
-interface KVNamespace {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+interface Env extends SecurityEnv {
+  ANTHROPIC_API_KEY: string;
 }
 
 interface AnalyzeRequestBody {
@@ -73,66 +71,6 @@ const TOOL_SCHEMA = {
   },
 };
 
-function jsonResponse(body: unknown, status = 200, extraHeaders?: Record<string, string>): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json", ...extraHeaders },
-  });
-}
-
-/** Cloudflare's own edge sets this — unlike X-Forwarded-For, the client can't spoof it. */
-function getClientIp(request: Request): string {
-  return request.headers.get("CF-Connecting-IP") ?? "unknown";
-}
-
-/**
- * Same-origin only. Without this, anyone can build a page elsewhere that
- * fires POSTs at this endpoint — the browser's default CORS policy stops
- * *them* from reading the JSON back, but it does NOT stop the request from
- * being sent and billed against our Anthropic key. Origin/Referer are the
- * actual guard; a missing header (e.g. a direct curl/script call) is also
- * rejected rather than trusted by default.
- */
-function isAllowedOrigin(request: Request, env: Env): boolean {
-  const allowed = (env.ALLOWED_ORIGINS ?? "")
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean);
-
-  // No allowlist configured yet (e.g. first deploy before the domain is set)
-  // — fall back to same-origin against this request's own URL so local/preview
-  // deployments still work without needing the env var set immediately.
-  const requestOrigin = new URL(request.url).origin;
-  const candidates = allowed.length > 0 ? allowed : [requestOrigin];
-
-  const origin = request.headers.get("Origin");
-  if (origin) return candidates.includes(origin);
-
-  const referer = request.headers.get("Referer");
-  if (referer) {
-    try {
-      return candidates.includes(new URL(referer).origin);
-    } catch {
-      return false;
-    }
-  }
-
-  return false;
-}
-
-async function checkRateLimit(env: Env, ip: string): Promise<boolean> {
-  const key = `ratelimit:${ip}`;
-  const current = await env.RATE_LIMIT.get(key);
-  const count = current ? parseInt(current, 10) : 0;
-
-  if (count >= RATE_LIMIT_MAX_REQUESTS) return false;
-
-  await env.RATE_LIMIT.put(key, String(count + 1), {
-    expirationTtl: RATE_LIMIT_WINDOW_SECONDS,
-  });
-  return true;
-}
-
 /** The model's output feeds straight into the UI — validate its shape before
  * trusting it, rather than forwarding whatever the API returned as-is. */
 function isValidAnalysisResult(value: unknown): value is AnalysisResult {
@@ -158,13 +96,9 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
 
   const ip = getClientIp(request);
   if (env.RATE_LIMIT) {
-    const withinLimit = await checkRateLimit(env, ip);
+    const withinLimit = await checkRateLimit(env, "analyze", ip, RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_SECONDS);
     if (!withinLimit) {
-      return jsonResponse(
-        { error: "rate_limited" },
-        429,
-        { "retry-after": String(RATE_LIMIT_WINDOW_SECONDS) }
-      );
+      return jsonResponse({ error: "rate_limited" }, 429, { "retry-after": String(RATE_LIMIT_WINDOW_SECONDS) });
     }
   }
 

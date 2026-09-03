@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Check, Loader2, Search, ShieldCheck } from "lucide-react";
 import { ResultCard } from "@/components/ResultCard";
+import { FollowUpChat } from "@/components/FollowUpChat";
 import { HowItWorks } from "@/components/HowItWorks";
 import type { AnalysisResult } from "@/lib/types";
 
@@ -205,7 +206,12 @@ export default function Home() {
               </div>
             )}
 
-            {isDone && result && <ResultCard result={result} onRetry={handleRetry} />}
+            {isDone && result && (
+              <>
+                <ResultCard result={result} onRetry={handleRetry} />
+                <FollowUpChat offerText={offerText} result={result} />
+              </>
+            )}
           </div>
         </form>
 

@@ -1,6 +1,14 @@
+# script-src needs 'unsafe-inline': Next.js App Router's static export embeds
+# the RSC hydration payload as inline <script>self.__next_f.push(...)</script>
+# tags in every page (no supported way to externalize them, and a static
+# export has no per-request server to hand out CSP nonces). Confirmed by
+# testing: without 'unsafe-inline' here, those scripts never run and the
+# page loads but never hydrates — silently dead, no console error a user
+# would notice. Everything else stays strict (no unsafe-eval, no external
+# scripts, no framing, no cross-origin fetches).
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
