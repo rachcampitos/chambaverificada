@@ -1,0 +1,10 @@
+# Copy to .dev.vars (gitignored) for local `wrangler pages dev` testing.
+# In production, set this as a Cloudflare Pages secret instead — never commit the real key.
+ANTHROPIC_API_KEY=
+
+# Comma-separated list of origins allowed to call /api/analyze (defense against
+# other sites firing requests at this endpoint and burning the Anthropic quota).
+# Leave unset locally — functions/api/analyze.ts falls back to same-origin.
+# Set in production once the real domain is known, e.g.:
+# ALLOWED_ORIGINS=https://chambaverificada.pages.dev,https://chambaverificada.pe
+ALLOWED_ORIGINS=

@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf9fc;
+  --foreground: #1f1a2e;
+  --foreground-muted: #5b5468;
+
+  --card: #ffffff;
+  --card-border: #e5e1ec;
+
+  --primary: #5b3ea6;
+  --primary-dark: #3d2875;
+  --primary-tint: #f1ecfb;
+  --primary-tint-border: #e0d5f5;
+
+  /* Button/badge background vs. on-tint text are separate tokens from --primary
+     on purpose: --primary itself doubles as text/icon color, and reusing it as a
+     solid button fill under white text (or as small text on --primary-tint) can
+     fail WCAG AA once the palette flips for dark mode — see the dark block below. */
+  --btn-bg: var(--primary);
+  --btn-bg-hover: var(--primary-dark);
+  --on-tint: var(--primary);
+
+  --accent: #c26a3f;
+  --accent-tint: #fbe9e0;
+
+  --risk-low: #16a34a;
+  --risk-low-tint: #dcfce7;
+  --risk-low-text: #15803d;
+
+  --risk-medium: #d97706;
+  --risk-medium-tint: #fef3c7;
+  --risk-medium-text: #92400e;
+
+  --risk-high: #dc2626;
+  --risk-high-tint: #fee2e2;
+  --risk-high-text: #991b1b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-tint: var(--primary-tint);
+  --color-primary-tint-border: var(--primary-tint-border);
+  --color-btn: var(--btn-bg);
+  --color-btn-hover: var(--btn-bg-hover);
+  --color-on-tint: var(--on-tint);
+  --color-accent: var(--accent);
+  --color-accent-tint: var(--accent-tint);
+  --color-risk-low: var(--risk-low);
+  --color-risk-low-tint: var(--risk-low-tint);
+  --color-risk-low-text: var(--risk-low-text);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-medium-tint: var(--risk-medium-tint);
+  --color-risk-medium-text: var(--risk-medium-text);
+  --color-risk-high: var(--risk-high);
+  --color-risk-high-tint: var(--risk-high-tint);
+  --color-risk-high-text: var(--risk-high-text);
+  --font-sans: var(--font-manrope);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #14111d;
+    --foreground: #f2f0f7;
+    --foreground-muted: #a79fc2;
+
+    --card: #1c1829;
+    --card-border: #322a47;
+
+    --primary: #8d6fd6;
+    --primary-dark: #6a4fc0;
+    --primary-tint: #241b3d;
+    --primary-tint-border: #3a2d5c;
+
+    /* --primary (#8d6fd6) was brightened for dark mode so it reads as text/icon
+       on the dark page background (4.77:1 there) — but that same value under
+       white button text only hits 3.9:1, and as small text on --primary-tint
+       only 4.1:1. Both fail WCAG AA (4.5:1). Separate, verified tokens instead
+       of reusing --primary for those two roles. */
+    --btn-bg: #6a4fc0; /* white text on this: 6.0:1 */
+    --btn-bg-hover: #57408f; /* white text on this: 8.3:1 */
+    --on-tint: #a48fe0; /* on --primary-tint or --card: 5.8-6.3:1 */
+
+    --accent: #d98a5f;
+    --accent-tint: rgba(194, 106, 63, 0.18);
+
+    /* Solid pastel tints (fine on a light card) read as washed-out light
+       rectangles on a dark card — translucent + brighter accent text instead. */
+    --risk-low: #22c55e;
+    --risk-low-tint: rgba(34, 197, 94, 0.16);
+    --risk-low-text: #4ade80;
+
+    --risk-medium: #f59e0b;
+    --risk-medium-tint: rgba(245, 158, 11, 0.18);
+    --risk-medium-text: #fbbf24;
+
+    --risk-high: #ef4444;
+    --risk-high-tint: rgba(239, 68, 68, 0.16);
+    --risk-high-text: #f87171;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
