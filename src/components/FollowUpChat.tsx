@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import ReactMarkdown from "react-markdown";
 import { Loader2, MessageCircleQuestion, Send } from "lucide-react";
 import type { AnalysisResult, ChatMessage } from "@/lib/types";
 
@@ -86,16 +87,15 @@ export function FollowUpChat({ offerText, result }: FollowUpChatProps) {
       </div>
 
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
-        <ChatBubble role="assistant">
-          Puedo ayudarte a entender por qué el riesgo quedó en{" "}
-          <strong>{result.risk === "low" ? "bajo" : result.risk === "medium" ? "medio" : "alto"}</strong>, o
-          sugerirte qué preguntarle a la empresa antes de postular. Pregúntame lo que quieras.
-        </ChatBubble>
+        <ChatBubble
+          role="assistant"
+          content={`Puedo ayudarte a entender por qué el riesgo quedó en **${
+            result.risk === "low" ? "bajo" : result.risk === "medium" ? "medio" : "alto"
+          }**, o sugerirte qué preguntarle a la empresa antes de postular. Pregúntame lo que quieras.`}
+        />
 
         {messages.map((m, i) => (
-          <ChatBubble key={i} role={m.role}>
-            {m.content}
-          </ChatBubble>
+          <ChatBubble key={i} role={m.role} content={m.content} />
         ))}
 
         {isLoading && (
@@ -154,16 +154,20 @@ export function FollowUpChat({ offerText, result }: FollowUpChatProps) {
   );
 }
 
-function ChatBubble({ role, children }: { role: "user" | "assistant"; children: React.ReactNode }) {
+function ChatBubble({ role, content }: { role: "user" | "assistant"; content: string }) {
   const isUser = role === "user";
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed ${
-          isUser ? "bg-btn text-white" : "bg-primary-tint text-foreground"
+          isUser ? "bg-btn text-white" : "chat-markdown bg-primary-tint text-foreground"
         }`}
       >
-        {children}
+        {/* User messages render as plain text — it's literally what they
+            typed, no reason to interpret it as markdown. Assistant replies
+            come back with real markdown (bold, numbered lists) from the API
+            and need actual parsing, not a raw string with visible "**". */}
+        {isUser ? content : <ReactMarkdown>{content}</ReactMarkdown>}
       </div>
     </div>
   );

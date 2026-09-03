@@ -111,3 +111,35 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Assistant chat replies come back as real markdown (bold, numbered/bulleted
+   lists) from the API — this styles it to read as a structured message
+   inside a small bubble, not a wall of text with visible "**" and "1." */
+.chat-markdown p {
+  margin: 0;
+}
+.chat-markdown p + p {
+  margin-top: 8px;
+}
+.chat-markdown strong {
+  font-weight: 700;
+}
+.chat-markdown ul,
+.chat-markdown ol {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.chat-markdown ul {
+  list-style: disc;
+}
+.chat-markdown ol {
+  list-style: decimal;
+}
+.chat-markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

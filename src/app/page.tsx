@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { Check, Loader2, Search, ShieldCheck } from "lucide-react";
 import { ResultCard } from "@/components/ResultCard";
@@ -220,8 +221,19 @@ export default function Home() {
         <HowItWorks />
 
         <footer className="mt-14 text-center text-[11px] text-foreground-muted/70">
-          chambaverificada no reemplaza tu propio criterio. Ante duda, no compartas datos
-          personales ni bancarios.
+          <p className="mb-2">
+            chambaverificada no reemplaza tu propio criterio. Ante duda, no compartas datos
+            personales ni bancarios.
+          </p>
+          <p>
+            <Link href="/politica-privacidad" className="underline-offset-2 hover:underline hover:text-foreground">
+              Política de Privacidad
+            </Link>
+            {" · "}
+            <Link href="/terminos" className="underline-offset-2 hover:underline hover:text-foreground">
+              Términos y Condiciones
+            </Link>
+          </p>
         </footer>
       </main>
     </div>
