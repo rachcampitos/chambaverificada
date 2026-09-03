@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Building2, TriangleAlert } from "lucide-react";
+import { CompanySheet } from "./CompanySheet";
 import type { CompanyInfo } from "@/lib/types";
 
 interface CompanyBadgeProps {
@@ -13,47 +15,62 @@ interface CompanyBadgeProps {
 // building icon instead of the risk shield, so "empresa real" never reads as
 // "oferta segura" — a real company can still post a risky offer.
 export function CompanyBadge({ company }: CompanyBadgeProps) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+
   if (!company) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className={`mb-3 flex items-start gap-3 rounded-[18px] border p-4 ${
-        company.found
-          ? "border-risk-low/30 bg-risk-low-tint"
-          : "border-risk-high/30 bg-risk-high-tint"
-      }`}
-    >
-      {company.found ? (
-        <Building2 className="mt-0.5 h-[30px] w-[30px] shrink-0 text-risk-low" aria-hidden="true" />
-      ) : (
-        <TriangleAlert className="mt-0.5 h-[30px] w-[30px] shrink-0 text-risk-high" aria-hidden="true" />
-      )}
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className={`mb-3 flex items-start gap-3 rounded-[18px] border p-4 ${
+          company.found
+            ? "border-risk-low/30 bg-risk-low-tint"
+            : "border-risk-high/30 bg-risk-high-tint"
+        }`}
+      >
+        {company.found ? (
+          <Building2 className="mt-0.5 h-[30px] w-[30px] shrink-0 text-risk-low" aria-hidden="true" />
+        ) : (
+          <TriangleAlert className="mt-0.5 h-[30px] w-[30px] shrink-0 text-risk-high" aria-hidden="true" />
+        )}
 
-      {company.found ? (
-        <div>
-          <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-risk-low-text">
-            Empresa verificada en SUNAT
+        {company.found ? (
+          <div>
+            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-risk-low-text">
+              Empresa verificada en SUNAT
+            </div>
+            <div className="mb-0.5 text-[14px] font-bold text-foreground">{company.razonSocial}</div>
+            <div className="mb-1.5 text-[12px] text-foreground-muted">
+              RUC {company.ruc} · <b className="font-semibold text-foreground">{company.estado}</b> ·{" "}
+              <b className="font-semibold text-foreground">{company.condicion}</b>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              className="text-[12px] font-bold text-on-tint underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              Ver ficha completa
+            </button>
           </div>
-          <div className="mb-0.5 text-[14px] font-bold text-foreground">{company.razonSocial}</div>
-          <div className="text-[12px] text-foreground-muted">
-            RUC {company.ruc} · <b className="font-semibold text-foreground">{company.estado}</b> ·{" "}
-            <b className="font-semibold text-foreground">{company.condicion}</b>
+        ) : (
+          <div>
+            <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-risk-high-text">
+              No se pudo verificar en SUNAT
+            </div>
+            <div className="mb-0.5 text-[14px] font-bold text-foreground">RUC {company.ruc}</div>
+            <div className="text-[12px] text-foreground-muted">
+              El número no aparece en el registro de SUNAT — señal de riesgo por sí sola.
+            </div>
           </div>
-        </div>
-      ) : (
-        <div>
-          <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-risk-high-text">
-            No se pudo verificar en SUNAT
-          </div>
-          <div className="mb-0.5 text-[14px] font-bold text-foreground">RUC {company.ruc}</div>
-          <div className="text-[12px] text-foreground-muted">
-            El número no aparece en el registro de SUNAT — señal de riesgo por sí sola.
-          </div>
-        </div>
+        )}
+      </motion.div>
+
+      {company.found && (
+        <CompanySheet company={company} open={sheetOpen} onClose={() => setSheetOpen(false)} />
       )}
-    </motion.div>
+    </>
   );
 }
