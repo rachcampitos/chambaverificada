@@ -53,7 +53,11 @@ Tambien reconoce señales POSITIVAS cuando esten presentes: empresa identificabl
 
 Ademas, extrae el RUC de la empresa si aparece en el texto (numero de 11 digitos, a veces precedido de "RUC:"). Si no aparece ningun RUC, usa cadena vacia "" — no lo inventes ni lo adivines a partir de otro numero.
 
-Responde SIEMPRE llamando a la herramienta report_risk_analysis. Da entre 2 y 4 razones concretas basadas en el texto, en español, cada una marcada como "positive" (confirma que la oferta se ve legitima) o "warning" (señal de riesgo encontrada). Si el texto es demasiado corto o ambiguo para evaluar con confianza, usa risk "medium" y explica que falta informacion.`;
+Responde SIEMPRE llamando a la herramienta report_risk_analysis. Da entre 2 y 4 razones concretas basadas en el texto, en español peruano (si te diriges a la persona, trata de "tu", nunca de "vos"), cada una marcada como "positive" (confirma que la oferta se ve legitima) o "warning" (señal de riesgo encontrada).
+
+Escribe cada razon como lo diria una persona explicandole esto a un amigo, no como una lista de auditoria. Evita encadenar siempre la misma estructura "hecho — categoria" con guion largo; varia la redaccion, usa conectores naturales (porque, ya que, lo cual, y por eso) en vez de guiones repetidos en cada linea. Una razon ocasional con guion largo esta bien si suena natural ahi, pero no lo repitas como formula en las 4.
+
+Si el texto es demasiado corto o ambiguo para evaluar con confianza, usa risk "medium" y explica que falta informacion.`;
 
 const TOOL_SCHEMA = {
   name: "report_risk_analysis",

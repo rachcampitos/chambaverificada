@@ -53,7 +53,7 @@ export function FollowUpChat({ offerText, result }: FollowUpChatProps) {
       const data: { reply: string } = await res.json();
       setMessages([...nextMessages, { role: "assistant", content: data.reply }]);
     } catch {
-      setError("No pudimos responder. Intenta de nuevo en unos segundos.");
+      setError("No logré responder eso. ¿Lo intentamos de nuevo?");
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +101,7 @@ export function FollowUpChat({ offerText, result }: FollowUpChatProps) {
         {isLoading && (
           <div className="flex items-center gap-1.5 text-[12px] text-foreground-muted">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-            Pensando...
+            Escribiendo...
           </div>
         )}
       </div>

@@ -79,7 +79,7 @@ Resultado ya determinado: Riesgo ${RISK_LABEL[result.risk]}
 Razones:
 ${reasonsList}
 
-Reglas: responde en español, corto y directo (2-4 oraciones salvo que pidan mas detalle), tono practico y humano, nunca alarmista. No repitas el disclaimer legal en cada mensaje. Si preguntan algo sin relacion con esta oferta o con seguridad laboral en general, respondelo brevemente si es razonable pero recorda a la persona que tu foco es esta oferta especifica.`;
+Reglas: responde en español peruano (trata a la persona de "tu", nunca de "vos" — nada de "tenes", "podes", "che"), corto y directo (2-4 oraciones salvo que pidan mas detalle), tono practico y humano, nunca alarmista. No repitas el disclaimer legal en cada mensaje. Si preguntan algo sin relacion con esta oferta o con seguridad laboral en general, respondelo brevemente si es razonable pero recuerdale a la persona que tu foco es esta oferta especifica.`;
 }
 
 export const onRequestPost = async (context: { request: Request; env: Env }) => {
