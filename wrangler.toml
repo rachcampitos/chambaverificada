@@ -2,6 +2,11 @@ name = "chambaverificada"
 pages_build_output_dir = "out"
 compatibility_date = "2024-09-23"
 
+# Not a secret — just the list of origins allowed to call /api/analyze.
+# Add a custom domain here (comma-separated) once one is connected.
+[vars]
+ALLOWED_ORIGINS = "https://chambaverificada.pages.dev"
+
 # Used by functions/api/analyze.ts for per-IP rate limiting.
 # Namespace created via: npx wrangler kv namespace create RATE_LIMIT
 [[kv_namespaces]]
