@@ -12,3 +12,11 @@ ALLOWED_ORIGINS = "https://chambaverificada.pages.dev"
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
 id = "048fdb91b80542a9ab1f9ab578d89fc6"
+
+# SUNAT padrón RUC index (see scripts/sync-padron.sh + functions/_lib/padron.ts).
+# Bucket created via: npx wrangler r2 bucket create chambaverificada-padron
+# Kept updated daily by .github/workflows/sync-padron.yml — not committed here,
+# a scheduled job uploads padron.bin to it.
+[[r2_buckets]]
+binding = "PADRON"
+bucket_name = "chambaverificada-padron"

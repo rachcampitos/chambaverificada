@@ -5,6 +5,8 @@ revisa señales de riesgo (empresa no verificable, salario fuera de mercado, ped
 bancarios por adelantado, lenguaje de urgencia/pirámide) antes de postular o compartir datos.
 
 MVP1: un solo flujo — pegar oferta -> analizar -> ver riesgo (bajo/medio/alto) con razones.
+Incluye verificación factual de la empresa contra el RUC (ver "Verificación de RUC/SUNAT" abajo)
+y un chat de seguimiento para preguntar sobre el resultado.
 
 ## Stack
 
@@ -68,3 +70,54 @@ creado en la cuenta de Cloudflare — no hace falta crearlo de nuevo.
 - **Pendiente, no crítico para el MVP**: regla de Rate Limiting a nivel de dashboard de
   Cloudflare (WAF) como defensa adicional una vez el dominio esté en producción — el rate
   limiting de código ya cubre el caso principal.
+
+## Verificación de RUC/SUNAT
+
+En vez de pagar una API de terceros (decolecta, apis.net.pe, etc.), indexamos nosotros mismos
+el **padrón reducido del RUC** que SUNAT publica como dato abierto y actualiza a diario —
+mismo espíritu que la validación de CEP en `histora-back` (llamar la fuente real en vez de un
+intermediario pago), pero a otra escala: **18.4 millones de registros**.
+
+**Por qué no se reverse-engineerea la consulta oficial de SUNAT como el CEP**: el portal
+interactivo (`e-consultaruc.sunat.gob.pe`) exige captcha en cada búsqueda — no hay forma de
+replicar ese flujo sin evadirlo, así que se usa la fuente de datos abierta en su lugar
+(`padron_reducido_ruc.zip`, sin captcha, actualizada por SUNAT mismo).
+
+**Arquitectura** (sin base de datos — Cloudflare KV/D1 no soportan escribir 18M+ filas en el
+tier gratuito):
+
+1. `scripts/sync-padron.sh` + `scripts/build-padron-index.mjs`: descarga el zip de SUNAT,
+   convierte de Latin-1 a UTF-8, ordena por RUC (`sort`, ~10s para 18M líneas), y construye un
+   **archivo de ancho fijo** (172 bytes/registro: RUC 11 + razón social 110 + estado 25 +
+   condición 25 + salto de línea) — cada registro ocupa siempre el mismo tamaño en bytes, así
+   se puede calcular matemáticamente en qué offset está cualquier RUC sin leer el archivo
+   entero.
+2. El archivo (~3.16 GB) se sube a **Cloudflare R2** (`chambaverificada-padron`, bucket
+   `padron.bin`) — R2 no tiene límite de "filas escritas" como KV/D1, es una sola subida de
+   objeto.
+3. `functions/_lib/padron.ts`: búsqueda binaria sobre el objeto en R2 vía `Range` requests —
+   ~24 lecturas para encontrar cualquiera de los 18.4M RUCs (log₂ 18.4M ≈ 24.1). Probado
+   localmente contra el archivo real: RUC 20615496074 (Code Media) y 20601030013 (ejemplo de
+   la doc de decolecta) resuelven correctamente en 21-24 lecturas.
+4. `.github/workflows/sync-padron.yml`: corre el pipeline completo todos los días (SUNAT
+   actualiza el padrón a diario) y sube el resultado a R2 vía el API S3-compatible.
+5. `functions/api/analyze.ts` ahora también le pide al modelo que extraiga el RUC del texto de
+   la oferta (mismo `tool_choice` forzado) y, si aparece uno, lo busca en el padrón — el
+   resultado (`company`) es un dato separado del razonamiento de la IA, se muestra en su propia
+   tarjeta (`CompanyBadge`) arriba del resultado, con un ícono distinto (edificio, no el escudo
+   de riesgo) para no confundir "empresa real" con "oferta segura".
+
+**Setup pendiente (una vez, manual)**:
+1. Habilitar R2 en el dashboard de Cloudflare (Workers & Pages -> R2 -> aceptar términos;
+   históricamente pide una tarjeta cargada aunque el uso quede dentro del tier gratis de 10GB)
+2. `npx wrangler r2 bucket create chambaverificada-padron`
+3. Generar un R2 API Token (dashboard -> R2 -> Manage R2 API Tokens) y configurarlo como
+   GitHub Secrets del repo: `R2_BUCKET`, `R2_ENDPOINT` (`https://<account_id>.r2.cloudflarestorage.com`),
+   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
+4. Disparar el workflow una vez manualmente (`gh workflow run sync-padron.yml` o desde la
+   pestaña Actions) para la primera carga — después corre solo, todos los días
+
+**Degradación**: si el índice todavía no se sincronizó o R2 tiene un problema puntual,
+`lookupCompany` devuelve `"unavailable"` y `company` queda en `null` — el análisis de riesgo
+sigue funcionando normalmente, solo no se muestra la tarjeta de verificación. Nunca bloquea el
+flujo principal.
